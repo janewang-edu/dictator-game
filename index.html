@@ -1,316 +1,343 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>独裁者博弈行为经济学实验平台</title>
+    <title>Behavioral Econ Lab: Dictator Game</title>
     <style>
-        /* 纯单机内置样式，100%不依赖外部网络 */
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: #f8fafc; color: #334155; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
-        header { background: white; border-b: 1px solid #e2e8f0; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .logo-area { display: flex; align-items: center; gap: 12px; }
-        .badge { background: #4f46e5; color: white; font-size: 12px; font-weight: bold; padding: 4px 10px; rounded-radius: 9999px; border-radius: 12px; }
-        h1 { font-size: 18px; color: #0f172a; font-weight: 600; }
-        .user-id { font-size: 14px; color: #64748b; background: #f1f5f9; padding: 4px 12px; border-radius: 6px; font-family: monospace; }
-        main { flex: 1; max-width: 896px; w-width: 100%; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; justify-content: center; width: 100%; }
-        .card { background: white; border-radius: 16px; padding: 32px; shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border: 1px solid #f1f5f9; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
-        .title-large { font-size: 28px; font-weight: 800; color: #0f172a; margin-bottom: 16px; }
-        .text-p { color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 24px; }
-        .tip-box { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 0 12px 12px 0; margin-bottom: 32px; color: #78350f; font-size: 14px; }
-        .btn-prime { background: #4f46e5; color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; text-align: center; transition: 0.2s; }
-        .btn-prime:hover { background: #4338ca; }
-        .btn-dark { background: #0f172a; color: white; border: none; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; text-align: center; }
-        .btn-dark:hover { background: #1e293b; }
-        .btn-confirm { background: #059669; color: white; border: none; padding: 16px; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; width: 100%; text-align: center; }
-        .btn-confirm:hover { background: #047857; }
-        .flex-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .sub-badge { font-size: 12px; font-weight: bold; color: #4f46e5; background: #e0e7ff; padding: 4px 12px; border-radius: 6px; }
-        .phase-text { font-size: 14px; color: #94a3b8; font-weight: 500; }
-        .input-group { background: #f8fafc; padding: 24px; border-radius: 12px; border: 1px solid #f1f5f9; margin-bottom: 32px; }
-        .label-q { font-size: 15px; font-weight: 600; color: #334155; margin-bottom: 24px; display: block; }
-        .slider-container { display: flex; align-items: center; gap: 24px; margin-bottom: 12px; }
-        input[type=range] { flex: 1; height: 8px; border-radius: 4px; background: #e2e8f0; cursor: pointer; -webkit-appearance: none; appearance: none; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%; background: #4f46e5; }
-        .game-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
-        @media (max-width: 768px) { .game-layout { grid-template-columns: 1fr; } }
-        .right-panel { background: #0f172a; color: white; padding: 24px; border-radius: 16px; display: flex; flex-direction: column; justify-content: space-between; }
-        .panel-title { font-size: 12px; font-weight: bold; tracking: 0.1em; color: #818cf8; text-transform: uppercase; margin-bottom: 8px; }
-        .divider { h-height: 1px; background: #334155; margin-bottom: 16px; height: 1px; }
-        .context-item { margin-bottom: 16px; }
-        .context-label { color: #94a3b8; font-size: 12px; margin-bottom: 4px; display: block; }
-        .context-val { background: #1e293b; padding: 8px 12px; border-radius: 8px; font-size: 14px; font-family: monospace; border: 1px solid #334155; }
-        .context-desc { background: rgba(30,41,59,0.6); padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.5; color: #cbd5e1; }
-        .visual-bar { width: 100%; height: 40px; background: #e2e8f0; border-radius: 9999px; display: flex; overflow: hidden; margin-bottom: 32px; border: 1px solid #cbd5e1; }
-        .bar-left { background: #6366f1; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold; transition: width 0.15s; }
-        .bar-right { background: #10b981; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; font-weight: bold; transition: width 0.15s; }
-        .big-num-display { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .big-num { font-size: 36px; font-weight: 900; font-family: monospace; }
-        table { width: 100%; border-collapse: collapse; margin: 16px 0 32px 0; font-size: 13px; font-family: monospace; text-align: left; }
-        th { background: #f8fafc; padding: 12px; color: #64748b; border-bottom: 1px solid #e2e8f0; }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
-        footer { background: white; border-top: 1px solid #e2e8f0; padding: 12px; text-align: center; font-size: 12px; color: #94a3b8; font-family: monospace; }
+        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@400;700;900&display=swap');
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        
+        body { 
+            background-color: #f7f3eb; 
+            background-image: radial-gradient(#d5caba 1px, transparent 1px);
+            background-size: 20px 20px; 
+            color: #333;
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .game-canvas {
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        h1 { 
+            font-family: 'Caveat', cursive; 
+            font-size: 50px; 
+            color: #2c3e50; 
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            transform: rotate(-1deg); 
+        }
+
+        .subtitle { 
+            font-size: 18px; 
+            color: #7f8c8d; 
+            margin-bottom: 40px; 
+            font-family: 'Caveat', cursive;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .stage {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            margin-bottom: 50px;
+        }
+
+        .character {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .char-b { animation-delay: -1.5s; } 
+
+        .svg-blob { width: 130px; height: 130px; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+        .role-tag {
+            margin-top: 15px; font-family: 'Caveat', cursive; font-size: 24px; font-weight: bold; color: #2c3e50;
+        }
+
+        /* Money Flow */
+        .money-flow-container { flex-grow: 1; margin: 0 30px; position: relative; }
+        .money-line { height: 8px; background: #dfe6e9; border-radius: 4px; overflow: hidden; }
+        .money-fill { height: 100%; background: #ffbc00; width: 50%; border-radius: 4px; transition: width 0.3s ease; }
+        .money-amount { position: absolute; top: -40px; left: 50%; transform: translateX(-50%); font-family: 'Caveat', cursive; font-size: 34px; color: #ffb142; font-weight: bold; }
+
+        /* Sliders & Buttons */
+        .slider-wrapper { margin-bottom: 30px; }
+        
+        input[type=range] {
+            -webkit-appearance: none; width: 80%; height: 20px; background: #ecf0f1; border-radius: 20px; outline: none; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05);
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 45px; height: 45px; background: #ffbc00; border: 4px solid #fff; border-radius: 50%; cursor: pointer; box-shadow: 0 4px 10px rgba(255, 188, 0, 0.4); transition: transform 0.1s;
+        }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+        .btn-cute {
+            background: #3498db; color: white; border: none; padding: 16px 35px; font-size: 20px; font-family: 'Nunito', sans-serif; font-weight: 900; border-radius: 30px; cursor: pointer; box-shadow: 0 8px 0 #2980b9, 0 15px 20px rgba(0,0,0,0.1); transition: all 0.1s;
+        }
+        .btn-cute:active { transform: translateY(8px); box-shadow: 0 0 0 #2980b9, 0 5px 10px rgba(0,0,0,0.1); }
+        .btn-green { background: #2ecc71; box-shadow: 0 8px 0 #27ae60, 0 15px 20px rgba(0,0,0,0.1); }
+        .btn-green:active { box-shadow: 0 0 0 #27ae60, 0 5px 10px rgba(0,0,0,0.1); }
+
+        /* Props */
+        .paper-bag { position: absolute; width: 140px; height: 150px; background: #cd853f; border-radius: 10px 10px 0 0; top: -10px; left: -5px; display: none; }
+        .paper-bag::after { content: '?_?'; position:absolute; top: 40%; left: 0; width: 100%; text-align: center; font-size: 28px; color: #5c3a21; font-weight: bold; }
+        .chat-bubble { position: absolute; background: white; padding: 12px 18px; border-radius: 15px; font-family: 'Caveat', cursive; font-size: 22px; color: #2c3e50; top: -70px; right: 50px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); display: none; transform: rotate(5deg); z-index: 10; }
+        .chat-bubble::after { content: ''; position: absolute; bottom: -8px; right: 25px; border-width: 8px 8px 0 0; border-style: solid; border-color: white transparent transparent transparent; }
+        .spotlight { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle at 80% 50%, rgba(241, 196, 15, 0.2) 0%, transparent 60%); border-radius: 20px; pointer-events: none; display: none; }
+
+        /* The Insight Card (Debriefing) */
+        .insight-card {
+            background: #fff;
+            padding: 40px;
+            border-radius: 2px 20px 2px 20px;
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.05), 0 0 20px rgba(0,0,0,0.05);
+            transform: rotate(-1.5deg);
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: left;
+        }
+        .insight-title { font-family: 'Caveat', cursive; font-size: 32px; color: #e74c3c; margin-bottom: 15px; border-bottom: 2px dashed #eee; padding-bottom: 10px; }
+        .insight-text { font-size: 17px; line-height: 1.6; color: #34495e; margin-bottom: 25px; }
+        .econ-term { background: #fef9e7; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #d35400; }
+
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo-area">
-            <span class="badge">高校学术实验</span>
-            <h1>行为经济学数字实验室</h1>
+    <div class="game-canvas">
+        
+        <div id="scr-intro">
+            <h1>The Dictator's Dilemma</h1>
+            <p class="subtitle">A Behavioral Economics Experiment. You have the money. They have no say.</p>
+            <button class="btn-cute" onclick="startLab()">Start The Lab</button>
         </div>
-        <div class="user-id" id="display-uid">受试者ID: 加载中...</div>
-    </header>
 
-    <main>
-        <div id="stage-welcome" class="card">
-            <h2 class="title-large">欢迎参加经济学决策研究</h2>
-            <p class="text-p">
-                本学术研究包含 <strong>6轮独立的决策任务</strong>。在每一轮中，系统将为您配对一位伙伴。您需要对拥有的初始点数进行分配。本实验没有任何“标准正确答案”，请完全根据您的个人真实想法进行决策。
+        <div id="scr-stage" class="hidden">
+            <h1 id="round-title">Round 1</h1>
+            <p class="subtitle" id="round-desc">Loading condition...</p>
+
+            <div class="stage" id="the-stage">
+                <div class="spotlight" id="spotlight"></div>
+                
+                <div class="character">
+                    <svg class="svg-blob" viewBox="0 0 100 100" id="svg-dictator">
+                        <polygon points="30,20 40,35 50,15 60,35 70,20 65,45 35,45" fill="#f1c40f" />
+                        <path d="M 20 50 C 20 20, 80 20, 80 50 C 80 80, 70 90, 50 90 C 30 90, 20 80, 20 50" fill="#3498db" />
+                        <circle cx="40" cy="55" r="4" fill="#fff" />
+                        <circle cx="60" cy="55" r="4" fill="#fff" />
+                        <path d="M 45 65 Q 50 70 55 65" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>
+                    </svg>
+                    <div class="role-tag">You</div>
+                </div>
+                
+                <div class="money-flow-container">
+                    <div class="money-amount" id="lbl-give">50 Tokens</div>
+                    <div class="money-line"><div class="money-fill" id="bar-give"></div></div>
+                </div>
+
+                <div class="character char-b">
+                    <div class="chat-bubble" id="chat-bubble">Plz help...</div>
+                    <div class="paper-bag" id="paper-bag"></div>
+                    <svg class="svg-blob" viewBox="0 0 100 100" id="svg-recipient">
+                        <path d="M 15 55 C 15 25, 85 25, 85 55 C 85 85, 75 95, 50 95 C 25 95, 15 85, 15 55" fill="#e67e22" id="body-b" />
+                        <g id="face-b">
+                            <circle cx="35" cy="55" r="4" fill="#fff" />
+                            <circle cx="65" cy="55" r="4" fill="#fff" />
+                            <path d="M 45 65 L 55 65" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+                        </g>
+                    </svg>
+                    <div class="role-tag" id="lbl-recipient">Player B</div>
+                </div>
+            </div>
+
+            <div class="slider-wrapper">
+                <input type="range" id="main-slider" min="0" max="100" value="50" oninput="updatePhysics(this.value)">
+            </div>
+            <button class="btn-cute btn-green" onclick="confirmSplit()">Confirm Decision</button>
+        </div>
+
+        <div id="scr-insight" class="hidden">
+            <div class="insight-card">
+                <div class="insight-title" id="insight-title">Concept Name</div>
+                <div class="insight-text" id="insight-text">Concept explanation goes here.</div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn-cute" onclick="nextCondition()">Got it! Next Round ➔</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="scr-outro" class="hidden">
+            <h1>Lab Complete!</h1>
+            <p class="subtitle" style="margin-bottom: 20px;">You've experienced the forces that shape human generosity.</p>
+            <p style="color:#7f8c8d; font-size:16px; margin-bottom: 40px; line-height: 1.6;">
+                Economics isn't just about money; it's about <span class="econ-term">Incentives</span>, <span class="econ-term">Empathy</span>, and <span class="econ-term">Context</span>.
             </p>
-            <div class="tip-box">
-                💡 <strong>严谨性提示：</strong> 您的分配方案、思考耗时（反应时间）以及社会信念预测将被完整记录，用于后续计量经济学回归分析。请在实验过程中保持专注。
-            </div>
-            <button class="btn-prime" onclick="toBeliefStage()">开始学术实验</button>
+            <button class="btn-cute btn-green" onclick="location.reload()">Restart Experiment</button>
         </div>
 
-        <div id="stage-belief" class="card hidden">
-            <div class="flex-header">
-                <span class="sub-badge" id="belief-round-title">第 1 轮 / 共 6 轮</span>
-                <span class="phase-text">阶段一：社会信念预测</span>
-            </div>
-            <h3 style="font-size:24px; font-weight:700; margin-bottom:8px;">预判社会平均行为</h3>
-            <p style="color:#64748b; font-size:14px; margin-bottom:32px;">在了解您本轮的具体实验条件前，请先盲猜并评估大众的普遍心理倾向。</p>
-            
-            <div class="input-group">
-                <label class="label-q">在完全相同的场景下，您认为<span style="color:#4f46e5;">社会上的平均普通人</span>会选择分配给玩家 B 多少点数？(0-100)</label>
-                <div class="slider-container">
-                    <input type="range" id="slider-belief" min="0" max="100" value="50" oninput="updateBeliefNum(this.value)">
-                    <span id="num-belief" style="font-size:30px; font-weight:bold; color:#4f46e5; width:60px; text-align:right; font-family:monospace;">50</span>
-                </div>
-                <div style="display:flex; justify-content:between; font-size:12px; color:#94a3b8; justify-content: space-between;">
-                    <span>完全自私 (0)</span><span>绝对公平 (50)</span><span>利他主义 (100)</span>
-                </div>
-            </div>
-            <button class="btn-dark" onclick="submitBelief()">锁定预测，进入分配决策</button>
-        </div>
-
-        <div id="stage-game" class="game-layout hidden">
-            <div class="card" style="display:flex; flex-direction:column; justify-content:space-between;">
-                <div>
-                    <div class="flex-header">
-                        <span class="sub-badge" style="color:#059669; background:#ecfdf5;" id="game-round-title">阶段二：资产实际分配</span>
-                        <span class="phase-text" id="game-condition-code">机制: baseline</span>
-                    </div>
-                    <h3 style="font-size:24px; font-weight:700; margin-bottom:24px;">自由决定您的划拨数额</h3>
-                    
-                    <div class="visual-bar">
-                        <div id="bar-keep" class="bar-left" style="width: 50%;">您留存: 50 点</div>
-                        <div id="bar-give" class="bar-right" style="width: 50%;">给对方: 50 点</div>
-                    </div>
-
-                    <div style="margin-bottom:32px;">
-                        <div class="big-num-display">
-                            <span style="color:#64748b; font-size:14px;">拖动滑块选择给对方的点数：</span>
-                            <span class="big-num"><span id="num-actual">50</span><span style="font-size:14px; color:#94a3b8; font-weight:normal; margin-left:4px;">点</span></span>
-                        </div>
-                        <input type="range" id="slider-actual" min="0" max="100" value="50" oninput="updateActualNum(this.value)">
-                    </div>
-                </div>
-                <button class="btn-confirm" onclick="submitActual()">确认并锁定本轮选择</button>
-            </div>
-
-            <div class="right-panel">
-                <div>
-                    <div class="panel-title">本轮实验情境 (Context)</div>
-                    <div class="divider"></div>
-                    <div class="context-item">
-                        <span class="context-label">当前匹配的目标伙伴</span>
-                        <div class="context-val" id="context-partner">🎯 匿名玩家 B</div>
-                    </div>
-                    <div class="context-item">
-                        <span class="context-label">当前轮次特殊规则</span>
-                        <div class="context-desc" id="context-prompt">加载中...</div>
-                    </div>
-                </div>
-                <div style="background:rgba(255,255,255,0.05); padding:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
-                    <p style="font-size:11px; color:#a5b4fc; line-height:1.4;">⚠️ <strong>后台监测中:</strong> 系统正在进行高精准度行为阻尼审计与毫秒级时延跟踪。</p>
-                </div>
-            </div>
-        </div>
-
-        <div id="stage-summary" class="card hidden" style="max-width:640px; margin:0 auto; width:100%;">
-            <div style="text-align:center; margin-bottom:32px;">
-                <div style="width:64px; height:64px; background:#d1fae5; color:#059669; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; margin-bottom:16px; font-size:32px; font-weight:bold;">✓</div>
-                <h2 class="title-large" style="margin-bottom:8px;">本赛段实验已全部结束</h2>
-                <p style="color:#64748b; font-size:14px;">感谢您的参与，您的行为数据对学术研究极具价值。</p>
-            </div>
-
-            <h4 style="font-size:14px; font-weight:600; color:#334155; margin-bottom:8px;">您本人的实验数据预览：</h4>
-            <div style="overflow-x:auto; border:1px solid #e2e8f0; border-radius:12px;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>轮次</th><th>控制条件</th><th>预判均值</th><th>实际给对方</th><th>决策耗时</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-body">
-                        </tbody>
-                </table>
-            </div>
-
-            <div style="background:#e0e7ff; color:#312e81; padding:16px; border-radius:12px; font-size:14px; line-height:1.5; margin-bottom:24px;">
-                📢 <strong>请注意：</strong> 请点击下方按钮下载您本人的实验数据文件 <code>.csv</code>，并将其统一发送给实验助教或老师。
-            </div>
-
-            <button class="btn-prime" onclick="exportData()">一键导出本受试者行为数据(CSV)</button>
-        </div>
-    </main>
-
-    <footer>
-        Empirical Research Framework v2.1.0 • 行为经济学实验教学专用
-    </footer>
+    </div>
 
     <script>
-        // 纯单机原生JS状态机
-        const ROUNDS_CONFIG = [
-            { id: 1, name: "基准轮 (完全匿名)", type: "baseline", endowment: 100, partner: "匿名玩家 B", prompt: "您和您的伙伴彼此完全匿名。玩家 B 无权拒绝您的分配决定，只能接受。" },
-            { id: 2, name: "社会形象 (实名可见)", type: "social_image", endowment: 100, partner: "张伟 (已实名认证)", prompt: "您的真实姓名和分配决定将在实验结束后完整展示给您的伙伴。" },
-            { id: 3, name: "共情激活 (聊天干预)", type: "chat", endowment: 100, partner: "玩家 B (等待中...)", prompt: "您的伙伴向您发送了一条消息：'你好，希望你能公平地对待我 :) 我真的很需要这笔钱交学费。'" },
-            { id: 4, name: "风投资金 (随机赋予)", type: "windfall", endowment: 100, partner: "匿名玩家 B", prompt: "这 100 点是平台随机赠送给您的礼物，您不需要为此付出任何劳动。" },
-            { id: 5, name: "劳动所得 (努力回报)", type: "earned", endowment: 100, partner: "匿名玩家 B", prompt: "这是您在实验开始前通过正确解答高等数学难题独立赚取的 100 点。您完全拥有这笔钱。" },
-            { id: 6, name: "财富不平等 (贫富差距)", type: "inequality", endowment: 200, partner: "玩家 B (初始资金: 50点)", prompt: "当前处于高度不平等环境：系统分配给您 200 点，而您的伙伴仅被分配了 50 点。" }
+        // 6 轮教学流配置：包含情境和课后解析
+        const STAGES = [
+            { 
+                name: "Round 1: The Baseline", 
+                desc: "Total anonymity. Player B wears a paper bag and will never know your identity.", 
+                env: "bag", partnerLabel: "Player B",
+                concept: "Homo Economicus vs. Altruism",
+                takeaway: "Traditional economics assumes humans are deeply selfish rational agents (<span class='econ-term'>Homo Economicus</span>). Under this model, you should have given exactly 0 tokens. If you gave more than 0, you demonstrated baseline human altruism or a fundamental preference for fairness."
+            },
+            { 
+                name: "Round 2: The Plea", 
+                desc: "A folded note slides across the table: 'Please share, I need to buy textbooks...'", 
+                env: "chat", partnerLabel: "Player B",
+                concept: "The Identifiable Victim Effect",
+                takeaway: "Why do we give more to a crying face than to a statistic? In behavioral economics, breaking anonymity and triggering empathy (<span class='econ-term'>Identifiable Victim Effect</span>) drastically increases charitable giving. Communication bridges the social gap."
+            },
+            { 
+                name: "Round 3: The Spotlight", 
+                desc: "A bright light turns on. The whole class will see your exact donation on the projector.", 
+                env: "light", partnerLabel: "Player B",
+                concept: "Social Image & Desirability",
+                takeaway: "Are we truly generous, or do we just want to *look* generous? The pressure of being observed triggers a <span class='econ-term'>Social Desirability Bias</span>. In experiments, simply putting a poster of 'staring eyes' on the wall makes people share significantly more."
+            },
+            { 
+                name: "Round 4: Windfall", 
+                desc: "100 tokens suddenly drop from the ceiling. Free money. You did zero work for it.", 
+                env: "normal", partnerLabel: "Player B",
+                concept: "The Endowment Effect & Windfall Gains",
+                takeaway: "Money isn't always equal in our minds. Because you didn't work for this money, you experience the <span class='econ-term'>House Money Effect</span>. We feel less psychological ownership over sudden windfalls, making us much more willing to give it away compared to hard-earned wages."
+            },
+            { 
+                name: "Round 5: Wealth Gap", 
+                desc: "You are placed on a pedestal with 100 tokens. Player B is currently in a debt pit.", 
+                env: "normal", partnerLabel: "Poor Player B",
+                concept: "Inequity Aversion",
+                takeaway: "Humans possess a built-in psychological discomfort with unfairness, known as <span class='econ-term'>Inequity Aversion</span>. When participants see their counterpart severely disadvantaged through no fault of their own, they often transfer wealth simply to 'balance the scales'."
+            },
+            { 
+                name: "Round 6: The Machine", 
+                desc: "Your counterpart is swapped out. You are now allocating tokens to an AI bot.", 
+                env: "bot", partnerLabel: "Algorithm Bot",
+                concept: "Dehumanization & Social Distance",
+                takeaway: "Pro-social behavior evolved to help *humans* cooperate. When you increase <span class='econ-term'>Social Distance</span> to the maximum—replacing a human with a machine—moral obligations often vanish. Giving usually plummets back to 0 in this round."
+            }
         ];
 
-        let currentIdx = 0;
-        let userId = 'Subject_' + Math.random().toString(36).substr(2, 9).toUpperCase();
-        let startTime = 0;
-        let allDecisions = [];
-        
-        let currentBeliefVal = 50;
-        let currentActualVal = 50;
+        let currIdx = 0;
+        let currentGiven = 50;
 
-        // 初始化
-        document.getElementById('display-uid').innerText = '受试者ID: ' + userId;
+        const FACES = {
+            angry: `<path d="M 30 45 L 45 50 M 70 45 L 55 50" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="35" cy="55" r="3" fill="#fff" /><circle cx="65" cy="55" r="3" fill="#fff" /><path d="M 40 70 Q 50 60 60 70" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+            sad: `<path d="M 30 50 L 45 45 M 70 50 L 55 45" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="35" cy="60" r="4" fill="#fff" /><circle cx="65" cy="60" r="4" fill="#fff" /><path d="M 45 75 Q 50 68 55 75" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+            neutral: `<circle cx="35" cy="55" r="4" fill="#fff" /><circle cx="65" cy="55" r="4" fill="#fff" /><path d="M 45 65 L 55 65" stroke="#fff" stroke-width="3" stroke-linecap="round"/>`,
+            happy: `<path d="M 30 55 Q 35 45 40 55 M 60 55 Q 65 45 70 55" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M 40 65 Q 50 75 60 65" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+            star: `<polygon points="35,45 38,52 45,52 39,57 41,64 35,60 29,64 31,57 25,52 32,52" fill="#fff"/><polygon points="65,45 68,52 75,52 69,57 71,64 65,60 59,64 61,57 55,52 62,52" fill="#fff"/><path d="M 40 70 Q 50 85 60 70 Z" fill="#fff"/>`,
+            bot: `<rect x="30" y="45" width="15" height="15" fill="#fff" rx="3"/><rect x="55" y="45" width="15" height="15" fill="#fff" rx="3"/><path d="M 35 70 L 65 70" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 6"/>`
+        };
 
-        function showStage(stageId) {
-            document.getElementById('stage-welcome').classList.add('hidden');
-            document.getElementById('stage-belief').classList.add('hidden');
-            document.getElementById('stage-game').classList.add('hidden');
-            document.getElementById('stage-summary').classList.add('hidden');
-            document.getElementById(stageId).classList.remove('hidden');
+        function startLab() {
+            document.getElementById('scr-intro').classList.add('hidden');
+            loadStage();
         }
 
-        function toBeliefStage() {
-            currentBeliefVal = 50;
-            document.getElementById('slider-belief').value = 50;
-            document.getElementById('num-belief').innerText = 50;
-            document.getElementById('belief-round-title').innerText = `第 ${ROUNDS_CONFIG[currentIdx].id} 轮 / 共 6 轮`;
-            showStage('stage-belief');
-            startTime = performance.now();
-        }
-
-        function updateBeliefNum(val) {
-            currentBeliefVal = parseInt(val);
-            document.getElementById('num-belief').innerText = val;
-        }
-
-        function submitBelief() {
-            // 进入实际决策
-            currentActualVal = Math.round(ROUNDS_CONFIG[currentIdx].endowment / 2);
-            let slider = document.getElementById('slider-actual');
-            slider.max = ROUNDS_CONFIG[currentIdx].endowment;
-            slider.value = currentActualVal;
-            
-            document.getElementById('game-condition-code').innerText = `机制: ${ROUNDS_CONFIG[currentIdx].type}`;
-            document.getElementById('context-partner').innerText = `🎯 ${ROUNDS_CONFIG[currentIdx].partner}`;
-            document.getElementById('context-prompt').innerText = ROUNDS_CONFIG[currentIdx].prompt;
-            
-            updateActualNum(currentActualVal);
-            showStage('stage-game');
-            startTime = performance.now(); // 重新开始计时决策时间
-        }
-
-        function updateActualNum(val) {
-            currentActualVal = parseInt(val);
-            let total = ROUNDS_CONFIG[currentIdx].endowment;
-            let keep = total - currentActualVal;
-            
-            document.getElementById('num-actual').innerText = val;
-            
-            let keepPercent = (keep / total) * 100;
-            let givePercent = (currentActualVal / total) * 100;
-            
-            let barKeep = document.getElementById('bar-keep');
-            let barGive = document.getElementById('bar-give');
-            
-            barKeep.style.width = keepPercent + '%';
-            barKeep.innerText = keepPercent > 18 ? `您留存: ${keep} 点` : `${keep}`;
-            
-            barGive.style.width = givePercent + '%';
-            barGive.innerText = givePercent > 18 ? `给对方: ${currentActualVal} 点` : `${currentActualVal}`;
-        }
-
-        function submitActual() {
-            let endTime = performance.now();
-            let rt = ((endTime - startTime) / 1000).toFixed(2);
-            let cfg = ROUNDS_CONFIG[currentIdx];
-
-            let log = {
-                "实验编号": userId,
-                "轮次": cfg.id,
-                "实验条件": cfg.type,
-                "总金币": cfg.endowment,
-                "信念预测(预计他人分配)": currentBeliefVal,
-                "实际分配给B点数": currentActualVal,
-                "自己留存点数": cfg.endowment - currentActualVal,
-                "决策耗时(秒)": parseFloat(rt),
-                "时间戳": new Date().toLocaleString()
-            };
-
-            allDecisions.push(log);
-
-            if (currentIdx < ROUNDS_CONFIG.length - 1) {
-                currentIdx++;
-                toBeliefStage();
-            } else {
-                renderSummary();
+        function loadStage() {
+            if(currIdx >= STAGES.length) {
+                document.getElementById('scr-insight').classList.add('hidden');
+                document.getElementById('scr-outro').classList.remove('hidden');
+                return;
             }
+
+            let s = STAGES[currIdx];
+            document.getElementById('scr-insight').classList.add('hidden');
+            document.getElementById('scr-stage').classList.remove('hidden');
+
+            document.getElementById('round-title').innerText = s.name;
+            document.getElementById('round-desc').innerText = s.desc;
+            document.getElementById('lbl-recipient').innerText = s.partnerLabel;
+
+            // 环境特效
+            document.getElementById('paper-bag').style.display = s.env === 'bag' ? 'block' : 'none';
+            document.getElementById('chat-bubble').style.display = s.env === 'chat' ? 'block' : 'none';
+            document.getElementById('spotlight').style.display = s.env === 'light' ? 'block' : 'none';
+
+            // 机器人轮次强制变为灰色
+            if(s.env === 'bot') {
+                document.getElementById('body-b').setAttribute('fill', '#95a5a6');
+            }
+
+            // 恢复滑块
+            document.getElementById('main-slider').value = 50;
+            updatePhysics(50);
         }
 
-        function renderSummary() {
-            let tbody = document.getElementById('table-body');
-            tbody.innerHTML = '';
-            allDecisions.forEach(d => {
-                let tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td style="font-weight:bold;">${d["轮次"]}</td>
-                    <td style="color:#475569;">${d["实验条件"]}</td>
-                    <td style="color:#4f46e5;">${d["信念预测(预计他人分配)"]}点</td>
-                    <td style="font-weight:bold; color:#059669;">${d["实际分配给B点数"]}点</td>
-                    <td style="color:#64748b;">${d["决策耗时(秒)"]}s</td>
-                `;
-                tbody.appendChild(tr);
-            });
-            showStage('stage-summary');
+        function updatePhysics(val) {
+            currentGiven = parseInt(val);
+            let keepAmt = 100 - currentGiven;
+            let ratio = currentGiven / 100;
+            let env = STAGES[currIdx].env;
+
+            document.getElementById('lbl-give').innerText = currentGiven + " Tokens";
+            document.getElementById('bar-give').style.width = currentGiven + "%";
+
+            let scaleA = 0.8 + (keepAmt / 100) * 0.4;
+            document.getElementById('svg-dictator').style.transform = `scale(${scaleA})`;
+
+            let faceHTML = "";
+            let bodyColor = "#e67e22"; 
+
+            if(env === 'bot') {
+                faceHTML = FACES.bot;
+                bodyColor = "#95a5a6"; // 机器灰
+            } else {
+                if(ratio === 0) { faceHTML = FACES.angry; bodyColor = "#e74c3c"; } 
+                else if(ratio < 0.2) { faceHTML = FACES.sad; bodyColor = "#d35400"; }
+                else if(ratio < 0.4) { faceHTML = FACES.neutral; bodyColor = "#e67e22"; }
+                else if(ratio < 0.6) { faceHTML = FACES.happy; bodyColor = "#f39c12"; }
+                else { faceHTML = FACES.star; bodyColor = "#f1c40f"; } 
+            }
+
+            document.getElementById('face-b').innerHTML = faceHTML;
+            if(env !== 'bot') document.getElementById('body-b').setAttribute('fill', bodyColor);
         }
 
-        function exportData() {
-            if (allDecisions.length === 0) return;
-            const BOM = "\uFEFF";
-            const headers = Object.keys(allDecisions[0]).join(",");
-            const rows = allDecisions.map(d => Object.values(d).map(v => typeof v === 'string' && v.includes(',') ? `"${v}"` : v).join(","));
-            const csvContent = BOM + [headers, ...rows].join("\n");
+        function confirmSplit() {
+            let s = STAGES[currIdx];
             
-            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", `行为经济学实验数据_${userId}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            // 隐藏舞台，展示复盘卡片
+            document.getElementById('scr-stage').classList.add('hidden');
+            
+            document.getElementById('insight-title').innerText = `Concept: ${s.concept}`;
+            document.getElementById('insight-text').innerHTML = s.takeaway;
+            
+            document.getElementById('scr-insight').classList.remove('hidden');
+        }
+
+        function nextCondition() {
+            currIdx++;
+            loadStage();
         }
     </script>
 </body>
