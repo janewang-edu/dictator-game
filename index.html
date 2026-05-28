@@ -4,25 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>独裁者博弈行为经济学实验平台</title>
-    <!-- 引入 Tailwind CSS 生产环境脚本 -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入 React 与 ReactDOM -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <!-- 引入 Babel 用于在浏览器中解析 JSX -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <style>
-        @page { size: A4; margin: 15mm 12mm; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
-    </style>
+    <script src="https://lf26-cdn-tos.bytecdntp.com/goofy/tw/tw.js"></script>
+    <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/react/18.2.0/umd/react.production.min.js" crossorigin></script>
+    <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/react-dom/18.2.0/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://lf3-cdn-tos.bytecdntp.com/cdn/expire-1-M/babel-standalone/6.26.0/babel.min.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800">
-
     <div id="root"></div>
-
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
-
         const ROUNDS_CONFIG = [
             { id: 1, name: "基准轮 (完全匿名)", type: "baseline", endowment: 100, partner: "匿名玩家 B", prompt: "您和您的伙伴彼此完全匿名。玩家 B 无权拒绝您的分配决定，只能接受。" },
             { id: 2, name: "社会形象 (实名可见)", type: "social_image", endowment: 100, partner: "张伟 (已实名认证)", prompt: "您的真实姓名和分配决定将在实验结束后完整展示给您的伙伴。" },
@@ -31,66 +21,40 @@
             { id: 5, name: "劳动所得 (努力回报)", type: "earned", endowment: 100, partner: "匿名玩家 B", prompt: "这是您在实验开始前通过正确解答高等数学难题独立赚取的 100 点。您完全拥有这笔钱。" },
             { id: 6, name: "财富不平等 (贫富差距)", type: "inequality", endowment: 200, partner: "玩家 B (初始资金: 50点)", prompt: "当前处于高度不平等环境：系统分配给您 200 点，而您的伙伴仅被分配了 50 点。" }
         ];
-
         function DictatorExperiment() {
-            const [stage, setStage] = useState('welcome'); // welcome -> belief -> game -> summary
+            const [stage, setStage] = useState('welcome');
             const [currentRoundIdx, setCurrentRoundIdx] = useState(0);
             const [beliefOffer, setBeliefOffer] = useState(50);
             const [actualOffer, setActualOffer] = useState(50);
             const [allDecisions, setAllDecisions] = useState([]);
             const [userId] = useState(() => 'Subject_' + Math.random().toString(36).substr(2, 9).toUpperCase());
-            
             const startTimeRef = useRef(null);
             const currentRound = ROUNDS_CONFIG[currentRoundIdx];
-
             useEffect(() => {
                 if (stage === 'belief' || stage === 'game') {
                     startTimeRef.current = performance.now();
                 }
             }, [stage, currentRoundIdx]);
-
-            const handleBeliefSubmit = () => {
-                setStage('game');
-            };
-
+            const handleBeliefSubmit = () => { setStage('game'); };
             const handleDecisionSubmit = () => {
                 const rt = ((performance.now() - startTimeRef.current) / 1000).toFixed(2);
-                
                 const decisionLog = {
-                    "实验编号": userId,
-                    "轮次": currentRound.id,
-                    "实验条件": currentRound.type,
-                    "总金币": currentRound.endowment,
-                    "信念预测(预计他人分配)": beliefOffer,
-                    "实际分配给B点数": actualOffer,
-                    "自己留存点数": currentRound.endowment - actualOffer,
-                    "决策耗时(秒)": parseFloat(rt),
-                    "时间戳": new Date().toLocaleString()
+                    "实验编号": userId, "轮次": currentRound.id, "实验条件": currentRound.type, "总金币": currentRound.endowment,
+                    "信念预测(预计他人分配)": beliefOffer, "实际分配给B点数": actualOffer, "自己留存点数": currentRound.endowment - actualOffer,
+                    "决策耗时(秒)": parseFloat(rt), "时间戳": new Date().toLocaleString()
                 };
-
                 const updatedDecisions = [...allDecisions, decisionLog];
                 setAllDecisions(updatedDecisions);
-
                 if (currentRoundIdx < ROUNDS_CONFIG.length - 1) {
-                    setActualOffer(50);
-                    setBeliefOffer(50);
-                    setCurrentRoundIdx(currentRoundIdx + 1);
-                    setStage('belief');
-                } else {
-                    setStage('summary');
-                }
+                    setActualOffer(50); setBeliefOffer(50); setCurrentRoundIdx(currentRoundIdx + 1); setStage('belief');
+                } else { setStage('summary'); }
             };
-
             const exportToCSV = () => {
                 if (allDecisions.length === 0) return;
-                
-                // 解决中文乱码加上 BOM 头
-                const BOM = "﻿";
+                const BOM = "\uFEFF";
                 const headers = Object.keys(allDecisions[0]).join(",");
                 const rows = allDecisions.map(d => Object.values(d).map(v => typeof v === 'string' && v.includes(',') ? `"${v}"` : v).join(","));
-                const csvContent = BOM + [headers, ...rows].join("
-");
-                
+                const csvContent = BOM + [headers, ...rows].join("\n");
                 const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
                 const url = URL.createObjectURL(blob);
                 const link = document.createElement("a");
@@ -100,21 +64,16 @@
                 link.click();
                 document.body.removeChild(link);
             };
-
             return (
                 <div className="min-h-screen flex flex-col justify-between">
-                    {/* 头部 */}
                     <header className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center shadow-sm">
                         <div className="flex items-center space-x-3">
                             <span className="bg-indigo-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">高校学术实验</span>
-                            <h1 className="text-lg font-semibold tracking-tight text-slate-900">行为经济学数字实验室</h1>
+                            <h1 className="text-lg font-semibold text-slate-900">行为经济学数字实验室</h1>
                         </div>
                         <div className="text-sm text-slate-500 font-mono bg-slate-100 px-3 py-1 rounded-md">受试者ID: {userId}</div>
                     </header>
-
-                    {/* 主内容 */}
                     <main className="flex-1 max-w-4xl w-full mx-auto p-6 flex flex-col justify-center">
-                        
                         {stage === 'welcome' && (
                             <div className="bg-white rounded-2xl p-8 shadow-xl border border-slate-100">
                                 <h2 className="text-3xl font-extrabold text-slate-900 mb-4">欢迎参加经济学决策研究</h2>
@@ -126,15 +85,9 @@
                                         💡 <strong>严谨性提示：</strong> 您的分配方案、思考耗时（反应时间）以及社会信念预测将被完整记录，用于后续计量经济学回归分析。请在实验过程中保持专注。
                                     </p>
                                 </div>
-                                <button 
-                                    onClick={() => setStage('belief')}
-                                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-4 px-6 rounded-xl transition duration-200 shadow-lg shadow-indigo-600/20 text-center block"
-                                >
-                                    开始学术实验
-                                </button>
+                                <button onClick={() => setStage('belief')} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-4 px-6 rounded-xl transition shadow-lg text-center block">开始学术实验</button>
                             </div>
                         )}
-
                         {stage === 'belief' && (
                             <div className="bg-white rounded-2xl p-8 shadow-xl border border-slate-100">
                                 <div className="flex justify-between items-center mb-6">
@@ -143,38 +96,19 @@
                                 </div>
                                 <h3 className="text-2xl font-bold text-slate-900 mb-2">预判社会平均行为</h3>
                                 <p className="text-slate-500 mb-8">在了解您本轮的具体实验条件前，请先盲猜并评估大众的普遍心理倾向。</p>
-                                
                                 <div className="space-y-6 bg-slate-50 p-6 rounded-xl border border-slate-100 mb-8">
-                                    <label className="block text-sm font-semibold text-slate-700">
-                                        在完全相同的场景下，您认为<span className="text-indigo-600">社会上的平均普通人</span>会选择分配给玩家 B 多少点数？(0-100)
-                                    </label>
+                                    <label className="block text-sm font-semibold text-slate-700">在完全相同的场景下，您认为<span className="text-indigo-600">社会上的平均普通人</span>会选择分配给玩家 B 多少点数？(0-100)</label>
                                     <div className="flex items-center space-x-6">
-                                        <input 
-                                            type="range" min="0" max="100" value={beliefOffer} 
-                                            onChange={(e) => setBeliefOffer(parseInt(e.target.value))}
-                                            className="w-full accent-indigo-600 h-2 bg-slate-200 rounded-lg cursor-pointer"
-                                        />
+                                        <input type="range" min="0" max="100" value={beliefOffer} onChange={(e) => setBeliefOffer(parseInt(e.target.value))} className="w-full accent-indigo-600 h-2 bg-slate-200 rounded-lg cursor-pointer" />
                                         <span className="text-3xl font-mono font-bold text-indigo-600 w-16 text-right">{beliefOffer}</span>
                                     </div>
-                                    <div className="flex justify-between text-xs text-slate-400 px-1">
-                                        <span>完全自私 (0)</span>
-                                        <span>绝对公平 (50)</span>
-                                        <span>利他主义 (100)</span>
-                                    </div>
+                                    <div className="flex justify-between text-xs text-slate-400 px-1"><span>完全自私 (0)</span><span>绝对公平 (50)</span><span>利他主义 (100)</span></div>
                                 </div>
-
-                                <button 
-                                    onClick={handleBeliefSubmit}
-                                    className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3.5 px-6 rounded-xl transition text-center block"
-                                >
-                                    锁定预测，进入分配决策
-                                </button>
+                                <button onClick={handleBeliefSubmit} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-3.5 px-6 rounded-xl transition text-center block">锁定预测，进入分配决策</button>
                             </div>
                         )}
-
                         {stage === 'game' && (
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                
                                 <div className="md:col-span-2 bg-white rounded-2xl p-8 shadow-xl border border-slate-100 flex flex-col justify-between">
                                     <div>
                                         <div className="flex justify-between items-center mb-4">
@@ -182,140 +116,61 @@
                                             <span className="text-xs font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded">机制: {currentRound.type}</span>
                                         </div>
                                         <h3 className="text-2xl font-bold text-slate-900 mb-6">自由决定您的划拨数额</h3>
-                                        
-                                        {/* 分配比例可视化 */}
                                         <div className="w-full h-10 bg-slate-100 rounded-full flex overflow-hidden mb-8 shadow-inner border border-slate-200">
-                                            <div 
-                                                style={{ width: `${((currentRound.endowment - actualOffer) / currentRound.endowment) * 100}%` }} 
-                                                className="bg-indigo-500 h-full flex items-center justify-center text-white text-xs font-bold font-mono transition-all duration-150"
-                                            >
-                                                {currentRound.endowment - actualOffer > 20 && `您留存: ${currentRound.endowment - actualOffer} 点`}
-                                            </div>
-                                            <div 
-                                                style={{ width: `${(actualOffer / currentRound.endowment) * 100}%` }} 
-                                                className="bg-emerald-500 h-full flex items-center justify-center text-white text-xs font-bold font-mono transition-all duration-150"
-                                            >
-                                                {actualOffer > 20 && `给对方: ${actualOffer} 点`}
-                                            </div>
+                                            <div style={{ width: `${((currentRound.endowment - actualOffer) / currentRound.endowment) * 100}%` }} className="bg-indigo-500 h-full flex items-center justify-center text-white text-xs font-bold font-mono transition-all duration-150">{currentRound.endowment - actualOffer > 20 && `您留存: ${currentRound.endowment - actualOffer} 点`}</div>
+                                            <div style={{ width: `${(actualOffer / currentRound.endowment) * 100}%` }} className="bg-emerald-500 h-full flex items-center justify-center text-white text-xs font-bold font-mono transition-all duration-150">{actualOffer > 20 && `给对方: ${actualOffer} 点`}</div>
                                         </div>
-
-                                        {/* 滑块 */}
                                         <div className="space-y-4 mb-8">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-sm font-medium text-slate-500">拖动滑块选择给对方的点数：</span>
-                                                <span className="text-4xl font-mono font-black text-slate-900">{actualOffer}<span className="text-sm font-normal text-slate-400 ml-1">点</span></span>
-                                            </div>
-                                            <input 
-                                                type="range" min="0" max={currentRound.endowment} value={actualOffer} 
-                                                onChange={(e) => setActualOffer(parseInt(e.target.value))}
-                                                className="w-full accent-emerald-500 h-3 bg-slate-200 rounded-lg cursor-pointer"
-                                            />
+                                            <div className="flex justify-between items-center"><span className="text-sm font-medium text-slate-500">拖动滑块选择给对方的点数：</span><span className="text-4xl font-mono font-black text-slate-900">{actualOffer}<span className="text-sm font-normal text-slate-400 ml-1">点</span></span></div>
+                                            <input type="range" min="0" max={currentRound.endowment} value={actualOffer} onChange={(e) => setActualOffer(parseInt(e.target.value))} className="w-full accent-emerald-500 h-3 bg-slate-200 rounded-lg cursor-pointer" />
                                         </div>
                                     </div>
-
-                                    <button 
-                                        onClick={handleDecisionSubmit}
-                                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-4 px-6 rounded-xl transition shadow-lg shadow-emerald-600/20 text-center block"
-                                    >
-                                        确认并锁定本轮选择
-                                    </button>
+                                    <button onClick={handleDecisionSubmit} className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-4 px-6 rounded-xl transition shadow-lg text-center block">确认并锁定本轮选择</button>
                                 </div>
-
-                                {/* 右侧实验干预条件区 */}
                                 <div className="bg-slate-900 text-white rounded-2xl p-6 shadow-xl flex flex-col justify-between border border-slate-800">
                                     <div>
                                         <h4 className="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-2">本轮实验情境 (Context)</h4>
                                         <div className="h-px bg-slate-800 w-full mb-4" />
-                                        
                                         <div className="space-y-4">
-                                            <div>
-                                                <label className="text-slate-400 text-xs block mb-1">当前匹配的目标伙伴</label>
-                                                <div className="text-sm font-semibold font-mono text-slate-200 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700">
-                                                    🎯 {currentRound.partner}
-                                                </div>
-                                            </div>
-
-                                            <div>
-                                                <label className="text-slate-400 text-xs block mb-1">当前轮次特殊规则</label>
-                                                <div className="text-sm bg-slate-800/60 p-3 rounded-lg text-slate-300 leading-relaxed border border-slate-800/80">
-                                                    {currentRound.prompt}
-                                                </div>
-                                            </div>
+                                            <div><label className="text-slate-400 text-xs block mb-1">当前匹配的目标伙伴</label><div className="text-sm font-semibold font-mono text-slate-200 bg-slate-800 px-3 py-2 rounded-lg border border-slate-700">🎯 {currentRound.partner}</div></div>
+                                            <div><label className="text-slate-400 text-xs block mb-1">当前轮次特殊规则</label><div className="text-sm bg-slate-800/60 p-3 rounded-lg text-slate-300 leading-relaxed border border-slate-800/80">{currentRound.prompt}</div></div>
                                         </div>
                                     </div>
-
-                                    <div className="mt-6 bg-slate-800/40 p-3 rounded-xl border border-indigo-900/40">
-                                        <p className="text-[11px] text-indigo-300 leading-tight">
-                                            ⚠️ <strong>后台监测中:</strong> 系统正在进行高精准度行为阻尼审计与毫秒级时延跟踪。
-                                        </p>
-                                    </div>
+                                    <div className="mt-6 bg-slate-800/40 p-3 rounded-xl border border-indigo-900/40"><p className="text-[11px] text-indigo-300 leading-tight">⚠️ <strong>后台监测中:</strong> 系统正在进行高精准度行为阻尼审计与毫秒级时延跟踪。</p></div>
                                 </div>
-
 							</div>
                         )}
-
                         {stage === 'summary' && (
                             <div className="bg-white rounded-2xl p-8 shadow-xl border border-slate-100 max-w-2xl mx-auto w-full">
                                 <div className="text-center mb-8">
-                                    <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full mb-4">
-                                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
-                                    </div>
+                                    <div className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full mb-4"><svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg></div>
                                     <h2 className="text-3xl font-extrabold text-slate-900">本赛段实验已全部结束</h2>
                                     <p className="text-slate-500 mt-2">感谢您的参与，您的行为数据对学术研究极具价值。</p>
                                 </div>
-
                                 <h4 className="text-sm font-semibold text-slate-700 mb-3 font-mono">您本人的实验数据预览：</h4>
                                 <div className="overflow-x-auto border border-slate-200 rounded-xl mb-8">
                                     <table className="w-full text-left text-xs font-mono">
                                         <thead className="bg-slate-50 border-b border-slate-200 text-slate-500">
-                                            <tr>
-                                                <th className="p-3">轮次</th>
-                                                <th className="p-3">控制条件</th>
-                                                <th className="p-3">信念预测</th>
-                                                <th className="p-3">实际给对方</th>
-                                                <th className="p-3">耗时</th>
-                                            </tr>
+                                            <tr><th className="p-3">轮次</th><th className="p-3">控制条件</th><th className="p-3">信念预测</th><th className="p-3">实际给对方</th><th className="p-3">耗时</th></tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100">
                                             {allDecisions.map((d, idx) => (
                                                 <tr key={idx} className="hover:bg-slate-50">
-                                                    <td className="p-3 font-bold">{d["轮次"]}</td>
-                                                    <td className="p-3 text-slate-600">{d["实验条件"]}</td>
-                                                    <td className="p-3 text-indigo-600">{d["信念预测(预计他人分配)"]}点</td>
-                                                    <td className="p-3 font-bold text-emerald-600">{d["实际分配给B点数"]}点</td>
-                                                    <td className="p-3 text-slate-500">{d["决策耗时(秒)"]}s</td>
+                                                    <td className="p-3 font-bold">{d["轮次"]}</td><td className="p-3 text-slate-600">{d["实验条件"]}</td><td className="p-3 text-indigo-600">{d["信念预测(预计他人分配)"]}点</td><td className="p-3 font-bold text-emerald-600">{d["实际分配给B点数"]}点</td><td className="p-3 text-slate-500">{d["决策耗时(秒)"]}s</td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
                                 </div>
-
-                                <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-6">
-                                    <p className="text-sm text-indigo-900 leading-relaxed">
-                                        📢 <strong>请注意：</strong> 请点击下方按钮下载您本人的实验数据文件 <code>.csv</code>，并将其统一发送给实验助教或老师，以便于汇总进行回归模型分析。
-                                    </p>
-                                </div>
-
-                                <button 
-                                    onClick={exportToCSV}
-                                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3.5 px-6 rounded-xl transition flex items-center justify-center space-x-2 shadow-lg shadow-indigo-600/20"
-                                >
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                    <span>一键导出本受试者行为数据(CSV)</span>
-                                </button>
+                                <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 mb-6"><p className="text-sm text-indigo-900 leading-relaxed">📢 <strong>请注意：</strong> 请点击下方按钮下载您本人的实验数据文件 <code>.csv</code>，并将其统一发送给实验助教或老师。</p></div>
+                                <button onClick={exportToCSV} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3.5 px-6 rounded-xl transition flex items-center justify-center space-x-2 shadow-lg"><svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg><span>一键导出本受试者行为数据(CSV)</span></button>
                             </div>
                         )}
-
                     </main>
-
-                    {/* 底部 */}
-                    <footer className="bg-white border-t border-slate-200 px-6 py-3 text-center text-xs text-slate-400 font-mono">
-                        Empirical Research Framework v2.1.0 • 行为经济学实验教学专用
-                    </footer>
+                    <footer className="bg-white border-t border-slate-200 px-6 py-3 text-center text-xs text-slate-400 font-mono">Empirical Research Framework v2.1.0 • 行为经济学实验教学专用</footer>
                 </div>
             );
         }
-
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<DictatorExperiment />);
     </script>
